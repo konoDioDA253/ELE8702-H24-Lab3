@@ -1113,43 +1113,99 @@ def plot_equipment_positions(antennas, ues):
     # Sauvegarder le plot dans un fichier
     filename = 'plot_disposition_equipement.png'
     plt.savefig(filename)
+    plt.close()
+
     print(f"INFO : Wrote file '{filename}' in the current directory.")
     print(f"INFO : Please find a visualization of the layout of UEs and antennas on the field in the file '{filename}'.")
     
 
-def plot_TX_ue(filename, id_ue, ues, fichier_de_cas):
-    # Récupérer les données de l'UE avec l'ID spécifié
-    pas_temps = get_from_dict('dt', fichier_de_cas)
-    ue = None
-    for u in ues:
-        if u.id == id_ue:
-            ue = u
-            break
-    
-    if ue is None:
-        print(f"Aucune UE avec l'ID {id_ue} n'a été trouvée.")
-        return
-    
-    # Créer les listes des temps et des nbits pour l'UE spécifiée
-    temps = []
-    nbits = []
-    for i in range(len(ue.nbits)):
-        temps.append(i * pas_temps)  # temps en secondes
-        nbits.append(ue.nbits[i])
 
-    # Tracer le graphique
-    plt.bar(temps, nbits, width=pas_temps, align='edge')
-    plt.title(f"Historique des transmissions de l'UE {id_ue}")
-    plt.xlabel('Temps (s)')
-    plt.ylabel('Nombre de bits transmis')
-    plt.grid(True)
+def plot_TX_all(filename, ues, antennas, fichier_de_cas):
+    # Récupérer le pas de temps
+    pas_temps = get_from_dict('dt', fichier_de_cas)
     
-    # Sauvegarder le graphique dans un fichier PDF et un fichier PNG
-    plt.savefig(filename.replace('.pdf', '.png'))  # Fichier PNG
-    plt.savefig(filename)  # Fichier PDF
+    # Créer le graphique
+    plt.figure(figsize=(10, 6))  # Ajustez la taille selon vos préférences
+    
+    # Tracer le trafic de chaque UE avec son antenne respective
+    for ue in ues:
+        for antenne in antennas:
+            if ue.assoc_ant == antenne.id:
+                # Créer les listes des temps et des nbits pour l'UE spécifiée
+                temps = []
+                nbits = []
+                for i in range(len(ue.nbits)):
+                    temps.append(i * pas_temps)  # temps en secondes
+                    nbits.append(ue.nbits[i])
+
+                # Tracer le graphique pour l'UE et son antenne respective
+                plt.plot(temps, nbits, label=f"UE {ue.id} - Antenne {antenne.id}")
+
+    # Ajouter les légendes et les titres
+    plt.title("Historique des transmissions de toutes les UEs avec leurs antennes respectives")
+    plt.xlabel("Temps (s)")
+    plt.ylabel("Nombre de bits transmis")
+    plt.legend()
+    plt.grid(True)
+
+    # Sauvegarder le graphique dans un fichier PDF
+    plt.savefig(filename)
     plt.close()
 
-    print(f"L'historique des transmissions de l'UE {id_ue} a été tracé dans {filename}.")
+    print(f"L'historique des transmissions de toutes les UEs avec leurs antennes respectives a été tracé dans {filename}.")
+
+def plot_average_traffic_ues(filename, ues):
+    # Calculer la moyenne du trafic pour chaque UE
+    average_traffic_ues = [sum(ue.nbits) / len(ue.nbits) for ue in ues]
+
+    # Extraire les ID des UEs
+    ue_ids = [ue.id for ue in ues]
+
+    # Tracer le graphique
+    plt.bar(ue_ids, average_traffic_ues)
+    plt.title("Trafic moyen de chaque UE")
+    plt.xlabel("ID de l'UE")
+    plt.ylabel("Nombre moyen de bits transmis")
+    plt.grid(True)
+
+    # Sauvegarder le graphique dans un fichier PDF
+    pdf_filename = f"{filename}.pdf"
+    plt.savefig(pdf_filename)
+    # plt.close()
+
+    # Sauvegarder le graphique dans un fichier PNG
+    png_filename = f"{filename}.png"
+    plt.savefig(png_filename)
+    plt.close()
+
+    print(f"Le trafic moyen de chaque UE a été tracé dans {pdf_filename} et {png_filename}.")
+
+def plot_average_traffic_antennas(filename, antennas):
+    # Calculer la moyenne du trafic pour chaque antenne
+    average_traffic_antennas = [sum(antenne.nbits) / len(antenne.nbits) for antenne in antennas]
+
+    # Extraire les ID des antennes
+    antenna_ids = [antenne.id for antenne in antennas]
+
+    # Tracer le graphique
+    plt.bar(antenna_ids, average_traffic_antennas)
+    plt.title("Trafic moyen de chaque antenne")
+    plt.xlabel("ID de l'antenne")
+    plt.ylabel("Nombre moyen de bits reçus")
+    plt.grid(True)
+
+    # Sauvegarder le graphique dans un fichier PDF
+    pdf_filename = f"{filename}.pdf"
+    plt.savefig(pdf_filename)
+    # plt.close()
+
+    # Sauvegarder le graphique dans un fichier PNG
+    png_filename = f"{filename}.png"
+    plt.savefig(png_filename)
+    plt.close()
+
+    print(f"Le trafic moyen de chaque antenne a été tracé dans {pdf_filename} et {png_filename}.")
+
 
 # Fonction permettant de traiter les arguments en entree de la commande CLI python pour lancer le code source
 # Nombre d'argument: 1 (arg = argument )
@@ -1258,11 +1314,14 @@ def main(arg):
     write_pathloss_to_file(pathlosses, fichier_de_cas)
     write_assoc_ues_to_file(antennas)
     write_assoc_ant_to_file(ues)
-    plot_TX_ue("test.pdf", 7, ues, fichier_de_cas)
     # write_transmission_ant_to_file(antennas)
     # write_transmission_ues_to_file(ues)
     plot_equipment_positions(antennas, ues)
+    # plot_TX_ue("test.pdf", 7, ues, fichier_de_cas)
+    # plot_TX_all("test.pdf", ues, antennas, fichier_de_cas)
     write_pathloss_warning_log_file(warning_log, "pathloss_warning_log.txt", fichier_de_cas)
+    plot_average_traffic_ues("average_traffic_ues", ues)
+    plot_average_traffic_antennas("average_traffic_antennas", antennas)
 
 
 
