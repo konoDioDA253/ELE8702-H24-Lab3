@@ -943,7 +943,9 @@ def simulate_packet_transmission(fichier_de_cas, fichier_de_device, antennas, ue
 
     # Boucle de simulation
     temps_courant = temps_initial
-    while temps_courant <= temps_final:
+    while temps_courant < temps_final:
+        if temps_courant == 9.0 :
+            print("EHH!")
         # Logique de simulation de transmission de paquets entre antennes et UEs
         # Pour chaque UE
         for ue in ues:
@@ -963,7 +965,7 @@ def simulate_packet_transmission(fichier_de_cas, fichier_de_device, antennas, ue
 
                     if ue.nbits == [] :
                         # Mettre à jour l'attribut nbits de l'antenne si celui-ci est vide
-                        while len(ue.nbits) < int((temps_final - temps_initial) / pas_temps) + 1:
+                        while len(ue.nbits) < int((temps_final - temps_initial) / pas_temps) :
                             ue.nbits.append(0)
                     ue.nbits[int(temps_courant / pas_temps)] += nbits_transmis 
                     
@@ -972,7 +974,7 @@ def simulate_packet_transmission(fichier_de_cas, fichier_de_device, antennas, ue
                     for antenne in antennas:
                         if antenne.id == antenne_associee_id:
                             # if len(antenne.nbits) >= (temps_courant + pas_temps):
-                            #     # while len(antenne.nbits) < int((temps_final - temps_initial) / pas_temps) + 1:
+                            #     # while len(antenne.nbits) < int((temps_final - temps_initial) / pas_temps) :
                             #     #     # Mettre à jour l'attribut nbits de l'antenne si celui-ci est vide
                             #     #     antenne.nbits.append(0)
                             #     # Mettre à jour l'attribut nbits de l'antenne
@@ -982,13 +984,16 @@ def simulate_packet_transmission(fichier_de_cas, fichier_de_device, antennas, ue
                             
                             if antenne.nbits == [] :
                                 # Mettre à jour l'attribut nbits de l'antenne si celui-ci est vide
-                                while len(antenne.nbits) < int((temps_final - temps_initial) / pas_temps) + 1:
+                                while len(antenne.nbits) < int((temps_final - temps_initial) / pas_temps) :
                                     antenne.nbits.append(0)
                             antenne.nbits[int(temps_courant / pas_temps)] += nbits_transmis 
                             
                             # Ajouter l'UE à la liste des UEs actives de l'antenne si pas deja ajoute 
-                            if ue.id not in antenne.live_ues:
-                                antenne.live_ues.append(ue.id)                            
+                            if antenne.live_ues == [] :
+                                while len(antenne.live_ues) < int((temps_final - temps_initial) / pas_temps) :
+                                    antenne.live_ues.append([])
+                            if ue.id not in antenne.live_ues[int(temps_courant / pas_temps)]:
+                                antenne.live_ues[int(temps_courant / pas_temps)].append(ue.id)                            
                             break
 
         
