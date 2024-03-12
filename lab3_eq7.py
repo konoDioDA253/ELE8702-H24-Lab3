@@ -1139,16 +1139,17 @@ def plot_TX_ue(filename, id_ue, ues, fichier_de_cas):
 
     # Tracer le graphique
     plt.bar(temps, nbits, width=pas_temps, align='edge')
-    plt.title(f"Traffic de données transmises par l'UE {id_ue}")
+    plt.title(f"Historique des transmissions de l'UE {id_ue}")
     plt.xlabel('Temps (s)')
     plt.ylabel('Nombre de bits transmis')
     plt.grid(True)
     
-    # Sauvegarder le graphique dans un fichier PDF
-    plt.savefig(filename)
+    # Sauvegarder le graphique dans un fichier PDF et un fichier PNG
+    plt.savefig(filename.replace('.pdf', '.png'))  # Fichier PNG
+    plt.savefig(filename)  # Fichier PDF
     plt.close()
 
-    print(f"L'historique des transmissions de l'UE '{id_ue}' a été tracé dans '{filename}'.")
+    print(f"L'historique des transmissions de l'UE {id_ue} a été tracé dans {filename}.")
 
 # Fonction permettant de traiter les arguments en entree de la commande CLI python pour lancer le code source
 # Nombre d'argument: 1 (arg = argument )
