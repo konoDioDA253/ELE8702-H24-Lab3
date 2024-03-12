@@ -1,0 +1,72 @@
+################################################
+#                                              #
+#     devices_db:                              #
+#     File: devices_db.yaml                    #
+#     Description: Base de données avec        #
+#                  info des dispositifs        #
+#                                              #
+################################################
+ANTENNAS:
+  Antenna1:
+    type: antenna
+    name: Antenna1
+    height: 10 
+    frequency:  28 #GHz
+    gain:  40
+
+  Antenna2:
+    type: antenna
+    name: Antenna2
+    height: 35
+    frequency:  0.9 #GHz
+    gain:  45
+
+  Antenna3:
+    type: antenna
+    name: Antenna3
+    height: 10
+    frequency:  28 #GHz
+    gain:  45
+
+  Antenna4:
+    type: antenna
+    name: Antenna4
+    height: 37
+    frequency:  0.9 #GHz
+    gain:  45
+        
+  Antenna5:
+    type: antenna
+    name: Antenna5
+    height: 37
+    frequency:  0.250 #GHz
+    gain:  30 
+        
+  Antenna6:
+    type: antenna
+    name: Antenna6
+    height: 20
+    frequency:  1.4 #GHz
+    gain:  30 
+
+  Antenna7:
+    type: antenna
+    name: Antenna7
+    height: 30
+    frequency:  3.2 #GHz
+    gain:  35 
+        
+UES:
+  UE1-App1:
+    type: ue
+    name: UE1-App1
+    app: app1
+    height:  1.5
+    R : 1000 #kbs
+
+  UE2-App2:
+    type: ue
+    name: UE2-App2
+    app: app2
+    height:  1.5
+    R : 5000 #kbs
