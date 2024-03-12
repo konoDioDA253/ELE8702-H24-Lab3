@@ -1117,6 +1117,39 @@ def plot_equipment_positions(antennas, ues):
     print(f"INFO : Please find a visualization of the layout of UEs and antennas on the field in the file '{filename}'.")
     
 
+def plot_TX_ue(filename, id_ue, ues, fichier_de_cas):
+    # Récupérer les données de l'UE avec l'ID spécifié
+    pas_temps = get_from_dict('dt', fichier_de_cas)
+    ue = None
+    for u in ues:
+        if u.id == id_ue:
+            ue = u
+            break
+    
+    if ue is None:
+        print(f"Aucune UE avec l'ID {id_ue} n'a été trouvée.")
+        return
+    
+    # Créer les listes des temps et des nbits pour l'UE spécifiée
+    temps = []
+    nbits = []
+    for i in range(len(ue.nbits)):
+        temps.append(i * pas_temps)  # temps en secondes
+        nbits.append(ue.nbits[i])
+
+    # Tracer le graphique
+    plt.bar(temps, nbits, width=pas_temps, align='edge')
+    plt.title(f"Traffic de données transmises par l'UE {id_ue}")
+    plt.xlabel('Temps (s)')
+    plt.ylabel('Nombre de bits transmis')
+    plt.grid(True)
+    
+    # Sauvegarder le graphique dans un fichier PDF
+    plt.savefig(filename)
+    plt.close()
+
+    print(f"L'historique des transmissions de l'UE '{id_ue}' a été tracé dans '{filename}'.")
+
 # Fonction permettant de traiter les arguments en entree de la commande CLI python pour lancer le code source
 # Nombre d'argument: 1 (arg = argument )
 # Valeur de retour : YAML_file_exists, YAML_file_correct_extension, correct_yaml_structure, case_file_name
@@ -1219,12 +1252,12 @@ def main(arg):
 
     # Transmission des paquets
     antennas, ues = simulate_packet_transmission(fichier_de_cas, fichier_de_device, antennas, ues)
-
     # Ecriture des fichiers de sortie et du plot des equipements
     write_coordinates_to_file(antennas,ues, fichier_de_cas)
     write_pathloss_to_file(pathlosses, fichier_de_cas)
     write_assoc_ues_to_file(antennas)
     write_assoc_ant_to_file(ues)
+    plot_TX_ue("test.pdf", 7, ues, fichier_de_cas)
     # write_transmission_ant_to_file(antennas)
     # write_transmission_ues_to_file(ues)
     plot_equipment_positions(antennas, ues)
