@@ -467,24 +467,50 @@ def write_assoc_ant_to_file(ues):
     print(f"INFO : Wrote file '{filename}' in the current directory.")
 
 # Fonction qui ecrit dans un fichier les id des antennes suivi du nomnbre de bits recus avec les ues concernees a chaque dt de la transmission
-# Parametre : 1 (liste des antennes)
-def write_transmission_ant_to_file(antennas):
+# Parametre : 2 (liste des antennes et fichier de cas)
+def write_transmission_ant_to_file(antennas, fichier_de_cas):
     filename = transmission_ant_file_name # nom du fichier dans lequel on veut ecrire 
-    # with open(filename, 'w') as file:
-    #     for antenna in antennas:
-    #         line = f"{ue.id}\t{ue.assoc_ant}\n"
-    #         file.write(line)
-    # print(f"INFO : Wrote file '{filename}' in the current directory.")
+    temps_initial = get_from_dict('tstart',fichier_de_cas) # temps de debut de simulation
+    temps_final = get_from_dict('tfinal',fichier_de_cas) # temps de fin de simulation
+    pas_temps = get_from_dict('dt',fichier_de_cas) # pas de temps dt
+    segment_filename = get_from_dict('read', get_from_dict('CLOCK', fichier_de_cas)) # Nom du fichier de segment
+    with open(filename, 'w') as file:
+        for antenna in antennas:
+            line = f"{antenna.id}"
+            line += "\n"
+            file.write(line)
+            for slot in  range(int((temps_final-temps_initial)/pas_temps)): 
+                line = f"{float(slot)}\t:\t"
+                if antenna.nbits[slot] != 0 :
+                    line += f"{antenna.nbits[slot]}\t"
+                    for ue in antenna.live_ues[slot]:
+                        line += f"{ue}\t"
+                line += "\n"
+                file.write(line)
+    print(f"INFO : Wrote file '{filename}' in the current directory.")
 
 # Fonction qui ecrit dans un fichier les id des ues suivi du nombre de bits recus a chaque dt de la transmission
-# Parametre : 1 (liste des ues)
-def write_transmission_ues_to_file(ues):
+# Parametre : 2 (liste des ues et fichier de cas)
+def write_transmission_ue_to_file(ues, fichier_de_cas):
     filename = transmission_ue_file_name # nom du fichier dans lequel on veut ecrire 
-    # with open(filename, 'w') as file:
-    #     for ue in ues:
-    #         line = f"{ue.id}\t{ue.assoc_ant}\n"
-    #         file.write(line)
-    # print(f"INFO : Wrote file '{filename}' in the current directory.")
+    temps_initial = get_from_dict('tstart',fichier_de_cas) # temps de debut de simulation
+    temps_final = get_from_dict('tfinal',fichier_de_cas) # temps de fin de simulation
+    pas_temps = get_from_dict('dt',fichier_de_cas) # pas de temps dt
+    segment_filename = get_from_dict('read', get_from_dict('CLOCK', fichier_de_cas)) # Nom du fichier de segment
+    with open(filename, 'w') as file:
+        for ue in ues:
+            line = f"{ue.id}"
+            line += "\n"
+            file.write(line)
+            for slot in  range(int((temps_final-temps_initial)/pas_temps)): 
+                line = f"{float(slot)}\t"
+                if ue.nbits[slot] != 0 :
+                    line += f"{ue.nbits[slot]}\t"
+                line += "\n"
+                file.write(line)
+    print(f"INFO : Wrote file '{filename}' in the current directory.")
+
+
 
 # Fonction calculant la distance entre deux point sur le terrain
 # Nbre Param: 2 (coodonnées du point 1 et 2 )
@@ -944,8 +970,6 @@ def simulate_packet_transmission(fichier_de_cas, fichier_de_device, antennas, ue
     # Boucle de simulation
     temps_courant = temps_initial
     while temps_courant < temps_final:
-        if temps_courant == 9.0 :
-            print("EHH!")
         # Logique de simulation de transmission de paquets entre antennes et UEs
         # Pour chaque UE
         for ue in ues:
@@ -1319,8 +1343,8 @@ def main(arg):
     write_pathloss_to_file(pathlosses, fichier_de_cas)
     write_assoc_ues_to_file(antennas)
     write_assoc_ant_to_file(ues)
-    # write_transmission_ant_to_file(antennas)
-    # write_transmission_ues_to_file(ues)
+    write_transmission_ant_to_file(antennas, fichier_de_cas)
+    write_transmission_ue_to_file(ues, fichier_de_cas)
     plot_equipment_positions(antennas, ues)
     # plot_TX_ue("test.pdf", 7, ues, fichier_de_cas)
     # plot_TX_all("test.pdf", ues, antennas, fichier_de_cas)
