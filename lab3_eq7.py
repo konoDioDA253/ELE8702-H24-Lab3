@@ -40,13 +40,18 @@ ETUDE_PATHLOSS :
         UE1-App1 :
             number : [nombre_d_UEs]
         ...  # Ajoutez ici d'autres dispositifs si nécessaire
-    VISIBILITY :
-        read : [fichier_visibility.txt]  # Fichier contenant les informations NLOS
     GEOMETRY :
         Surface :
             rectangle :
                 length : [longueur_en_mètres]
                 height : [hauteur_en_mètres]
+    VISIBILITY :
+        read : [fichier_visibility.txt]  # Fichier contenant les informations NLOS
+   CLOCK : 
+      tstart : (temps initial)
+      tfinal : (temps final) #ms 
+      dt : (pas de temps)      #ms 
+      read : [lab3_eq7_segments.txt]
 """
 
 # Germe de toutes les fonctions aléatoires
@@ -81,7 +86,10 @@ class UE:
         self.los = True       # LoS ou non (bool)
         self.gen = None       # type de géneration de coordonnées: 'g', 'a', etc. (str)
         # Attributs rajoutes par notre equipe
+        self.TX_rate = None   # Debit de l'application de l'UE
         self.nbits = []       # Nombre de bits envoyes a chaque dt
+        self.start_TX = []    # Liste des temps de debuts de transmission de paquets
+        self.end_TX = []      # Liste des temps de fins de transmission de paquets
 
 # Cette classe est utilise pour repertorier tous les pathloss calculer avec les antenne et les ues utilisés
 class Pathloss:
@@ -274,6 +282,7 @@ def assigner_coordonnees_ues(fichier_de_cas, fichier_de_devices):
                 ue.coords = gen_random_coords(fichier_de_cas)
                 ue.gen = type_de_generation
                 ue.group = get_from_dict('name', get_from_dict(ue_group,fichier_de_devices))
+                ue.TX_rate = get_from_dict('R', get_from_dict(ue_group,fichier_de_devices))
 
                 liste_ues_avec_coordonnees.append(ue)
 
@@ -325,7 +334,7 @@ def assigner_coordonnees_antennes(fichier_de_cas, fichier_de_devices):
 # Fonction initialisant une liste de antennes et assignant des coordonnées selon la grille à chaque antenne
 # Nbre de param: 1 (filename = nom du fichier a lire) 
 # Valeur de retour: liste_ues_avec_coordonnees = liste des ues avec leur coordonnées
-def lire_coordonnees_ues(filename):
+def lire_coordonnees_ues(filename, fichier_de_devices):
     liste_ues_avec_coordonnees = []
     print(f"INFO : Reading UEs data in file '{filename}' in the current directory.")
     # Ouvrir le fichier en mode lecture
@@ -349,6 +358,7 @@ def lire_coordonnees_ues(filename):
                 ue = UE(id=id_ue, app_name=appname_ue)
                 ue.coords = [coord_x_ue, coord_y_ue]
                 ue.group = group_ue
+                ue.TX_rate = get_from_dict('R', get_from_dict(group_ue,fichier_de_devices))
                 liste_ues_avec_coordonnees.append(ue)
 
     return liste_ues_avec_coordonnees
@@ -892,9 +902,55 @@ def sanity_check_coordinates_file(filename):
             else:
                 ERROR(f"La première colonne de la ligne n'est ni 'antenna' ni 'ue': {line.strip()} dans le fichier '{filename}'.")
 
+# Fonction lisant le fichier de segment et y associe le debut et fin de transmission de paquets pour chaque UE
+# Nbre de param: 2 (filename = nom du fichier a lire, ues = liste d'objets UE) 
+# Valeur de retour: liste_ues_avec_coordonnees = liste des ues avec leur coordonnées
+def lire_fichier_segments(filename, ues):
+    print(f"INFO : Reading UEs data in file '{filename}' in the current directory.")
+    # Ouvrir le fichier en mode lecture
+    with open(filename, 'r') as f:
+        # Lire chaque ligne du fichier
+        for ligne in f:
+            # Diviser la ligne en utilisant le caractère de tabulation comme séparateur
+            elements = ligne.strip().split()
+
+            # Récupérer les éléments individuels
+            id_ue = int(elements[0])
+            start_TX = float(elements[1])
+            end_TX = float(elements[2])
+
+            # Recherche de l'UE correspondante dans la liste des UEs
+            for ue in ues:
+                if ue.id == id_ue:
+                    # Ajouter les valeurs start_TX et end_TX à leurs listes respectives dans l'objet UE
+                    ue.start_TX.append(start_TX)
+                    ue.end_TX.append(end_TX)
+                    break  # Sortir de la boucle une fois que l'UE correspondante est trouvée
+    return ues
+
 # Fonction permettant de faire la simulation de la transmission a chaque dt et retournant une liste d'objets Antenna et une liste d'objets UE avec les attributs nbits et live_ues mis a jour
 # Arguments : fichier_de_cas, fichier_de_device, antennas (liste d'objets Antenna), ues (liste d'objets UE)
 def simulate_packet_transmission(fichier_de_cas, fichier_de_device, antennas, ues) :
+    temps_initial = get_from_dict('tstart',fichier_de_cas) # temps de debut de simulation
+    temps_final = get_from_dict('tfinal',fichier_de_cas) # temps de fin de simulation
+    pas_temps = get_from_dict('dt',fichier_de_cas) # pas de temps dt
+    segment_filename = get_from_dict('read', get_from_dict('CLOCK', fichier_de_cas)) # Nom du fichier de segment
+
+    # Lire le fichier de segments et en extraire les informations de transmission des UEs
+    ues = lire_fichier_segments(segment_filename, ues)
+
+    # Lire l
+
+    # Boucle de simulation
+    temps_courant = temps_initial
+    while temps_courant <= temps_final:
+        # Logique de simulation de transmission de paquets entre antennes et UEs
+        
+        # Mise à jour du temps
+        temps_courant += pas_temps
+
+    # Affichage ou traitement des résultats de la simulation
+    
     return antennas, ues
 
 
@@ -921,7 +977,7 @@ def lab3 (data_case):
         # antennas = assigner_coordonnees_antennes(fichier_de_cas, fichier_de_devices)
     if mode == True :
         sanity_check_coordinates_file(coord_file_name)        
-        ues = lire_coordonnees_ues(coord_file_name)
+        ues = lire_coordonnees_ues(coord_file_name, fichier_de_devices)
         antennas = lire_coordonnees_antennes(coord_file_name)
     return (antennas,ues)
 
@@ -938,7 +994,7 @@ def validate_yaml_structure(file_path):
 
     # Define the expected structure
     expected_structure = {
-        'ETUDE_PATHLOSS': {
+        'ETUDE_DE_TRANSMISSION': {
             'PATHLOSS': {
                 'model': None,
                 'scenario': None,
@@ -947,7 +1003,6 @@ def validate_yaml_structure(file_path):
             'UE_COORD_GEN': None,
             'COORD_FILES': None,
             'DEVICES': None,
-            'VISIBILITY': None,
             'GEOMETRY': {
                 'Surface': {
                     'rectangle': {
@@ -955,7 +1010,9 @@ def validate_yaml_structure(file_path):
                         'height': None
                     }
                 }
-            }
+            },
+            'VISIBILITY': None,
+            'CLOCK': None            
         }
     }
 
@@ -1122,8 +1179,8 @@ def main(arg):
     write_pathloss_to_file(pathlosses, fichier_de_cas)
     write_assoc_ues_to_file(antennas)
     write_assoc_ant_to_file(ues)
-    write_transmission_ant_to_file(antennas)
-    write_transmission_ues_to_file(ues)
+    # write_transmission_ant_to_file(antennas)
+    # write_transmission_ues_to_file(ues)
     plot_equipment_positions(antennas, ues)
     write_pathloss_warning_log_file(warning_log, "pathloss_warning_log.txt", fichier_de_cas)
 

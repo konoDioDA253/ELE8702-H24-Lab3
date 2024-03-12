@@ -7,8 +7,8 @@
 ###############################################
 ETUDE_DE_TRANSMISSION:
    PATHLOSS :
-       model : 3gpp
-       scenario : UMa
+      model : 3gpp
+      scenario : UMa
    ANT_COORD_GEN : g
    UE_COORD_GEN: a
    COORD_FILES:  # Used when coordinates are read from a file 
