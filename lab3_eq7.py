@@ -358,6 +358,7 @@ def lire_coordonnees_ues(filename, fichier_de_devices):
                 ue = UE(id=id_ue, app_name=appname_ue)
                 ue.coords = [coord_x_ue, coord_y_ue]
                 ue.group = group_ue
+                ue.height = get_from_dict('height', get_from_dict(group_ue,fichier_de_devices))
                 ue.TX_rate = get_from_dict('R', get_from_dict(group_ue,fichier_de_devices))
                 liste_ues_avec_coordonnees.append(ue)
 
@@ -368,7 +369,7 @@ def lire_coordonnees_ues(filename, fichier_de_devices):
 # Fonction initialisant une liste de antennes et assignant des coordonnées selon la grille à chaque antenne
 # Nbre param: 2 (filename = fichier dans lequel on veux lire les données)
 # Valeur de retour: Liste des antenne 
-def lire_coordonnees_antennes(filename):
+def lire_coordonnees_antennes(filename, fichier_de_devices):
     liste_antennes_avec_coordonnees = []
     print(f"INFO : Reading antennas data in file '{filename}' in the current directory.")
 
@@ -392,6 +393,8 @@ def lire_coordonnees_antennes(filename):
                 antenna = Antenna(id_ant)
                 antenna.coords = [coord_x_ant, coord_y_ant]
                 antenna.group = group_ant
+                antenna.frequency = get_from_dict('frequency', get_from_dict_3GPP(antenna.group, get_from_dict_3GPP(next(iter(fichier_de_devices)), fichier_de_devices)))
+                antenna.height = get_from_dict('height', get_from_dict_3GPP(antenna.group, get_from_dict_3GPP(next(iter(fichier_de_devices)), fichier_de_devices)))
                 liste_antennes_avec_coordonnees.append(antenna)
 
     return liste_antennes_avec_coordonnees
@@ -1025,7 +1028,6 @@ def simulate_packet_transmission(fichier_de_cas, fichier_de_device, antennas, ue
         # Mise à jour du temps
         temps_courant += pas_temps
 
-    # Affichage ou traitement des résultats de la simulation
     
     return antennas, ues
 
@@ -1054,7 +1056,7 @@ def lab3 (data_case):
     if mode == True :
         sanity_check_coordinates_file(coord_file_name)        
         ues = lire_coordonnees_ues(coord_file_name, fichier_de_devices)
-        antennas = lire_coordonnees_antennes(coord_file_name)
+        antennas = lire_coordonnees_antennes(coord_file_name, fichier_de_devices)
     return (antennas,ues)
 
 # Fonction vérifiant si le fichier YAML fournit en input a la bonne structure 
