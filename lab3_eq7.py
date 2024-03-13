@@ -480,11 +480,12 @@ def write_transmission_ant_to_file(antennas, fichier_de_cas):
             line += "\n"
             file.write(line)
             for slot in  range(int((temps_final-temps_initial)/pas_temps)): 
-                line = f"{float(slot)}\t:\t"
+                line = f"{float(slot)}\t"
+                line += ":\t"
                 if antenna.nbits[slot] != 0 :
-                    line += f"{antenna.nbits[slot]}\t"
+                    line += f"{antenna.nbits[slot]}"
                     for ue in antenna.live_ues[slot]:
-                        line += f"{ue}\t"
+                        line += f"\t{ue}"
                 line += "\n"
                 file.write(line)
     print(f"INFO : Wrote file '{filename}' in the current directory.")
@@ -503,9 +504,9 @@ def write_transmission_ue_to_file(ues, fichier_de_cas):
             line += "\n"
             file.write(line)
             for slot in  range(int((temps_final-temps_initial)/pas_temps)): 
-                line = f"{float(slot)}\t"
+                line = f"{float(slot)}"
                 if ue.nbits[slot] != 0 :
-                    line += f"{ue.nbits[slot]}\t"
+                    line += f"\t{ue.nbits[slot]}"
                 line += "\n"
                 file.write(line)
     print(f"INFO : Wrote file '{filename}' in the current directory.")
@@ -974,8 +975,8 @@ def simulate_packet_transmission(fichier_de_cas, fichier_de_device, antennas, ue
         # Pour chaque UE
         for ue in ues:
             # Verifier si l'UE a des transmissions prevues pendant ce pas de temps
-            if ue.id == 2 :
-                print("EH!")
+            # if ue.id == 2 :
+            #     print("EH!")
             for i in range(len(ue.start_TX)):
                 if temps_courant <= ue.start_TX[i] <= temps_courant + pas_temps or ue.start_TX[i]<= temps_courant <= ue.end_TX[i]:
                     M = min(temps_courant + pas_temps, ue.end_TX[i]) - max(temps_courant, ue.start_TX[i])  # Durée de la transmission
