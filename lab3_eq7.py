@@ -974,11 +974,11 @@ def simulate_packet_transmission(fichier_de_cas, fichier_de_device, antennas, ue
         # Pour chaque UE
         for ue in ues:
             # Verifier si l'UE a des transmissions prevues pendant ce pas de temps
-            # if ue.id == 6 :
-            #     print("EH!")
+            if ue.id == 2 :
+                print("EH!")
             for i in range(len(ue.start_TX)):
                 if temps_courant <= ue.start_TX[i] <= temps_courant + pas_temps or ue.start_TX[i]<= temps_courant <= ue.end_TX[i]:
-                    M = min(temps_courant + pas_temps, ue.end_TX[i]) - ue.start_TX[i]  # Durée de la transmission
+                    M = min(temps_courant + pas_temps, ue.end_TX[i]) - max(temps_courant, ue.start_TX[i])  # Durée de la transmission
                     R = ue.TX_rate  # Débit de la transmission
                     nbits_transmis = int(R * M)  # Nombre de bits transmis
                     # Mettre a jour l'attribut nbits de l'UE 
