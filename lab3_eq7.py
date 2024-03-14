@@ -70,6 +70,9 @@ class Antenna:
         self.scenario = None  # pathloss scénario tel que lu du fichier de cas (str)
         self.gen = None       # type de géneration de coordonnées: 'g', 'a', etc. (str)
         # Attributs rajoutes par notre equipe
+        self.type = None      # Type de l'antenne
+        self.name = None      # Nom de l'Antenne
+        self.gain = None      # Gain de l'antenne
         self.nbits = []       # Nombre de bits recus a chaque dt
         self.live_ues = []    # Regroupement des ID des ues qui auront transmis a chaque dt
     
@@ -86,6 +89,8 @@ class UE:
         self.los = True       # LoS ou non (bool)
         self.gen = None       # type de géneration de coordonnées: 'g', 'a', etc. (str)
         # Attributs rajoutes par notre equipe
+        self.type = None      # Type de l'UE
+        self.name = None      # Nom de l'UE
         self.TX_rate = None   # Debit de l'application de l'UE
         self.nbits = []       # Nombre de bits envoyes a chaque dt
         self.start_TX = []    # Liste des temps de debuts de transmission de paquets
@@ -281,7 +286,9 @@ def assigner_coordonnees_ues(fichier_de_cas, fichier_de_devices):
                 ue = UE(id=id, app_name=app_name)
                 ue.coords = gen_random_coords(fichier_de_cas)
                 ue.gen = type_de_generation
-                ue.group = get_from_dict('name', get_from_dict(ue_group,fichier_de_devices))
+                ue.group = ue_group #get_from_dict('name', get_from_dict(ue_group,fichier_de_devices))
+                ue.type = get_from_dict('type', get_from_dict(ue_group,fichier_de_devices))
+                ue.name = get_from_dict('name', get_from_dict(ue_group,fichier_de_devices))
                 ue.TX_rate = get_from_dict('R', get_from_dict(ue_group,fichier_de_devices))
 
                 liste_ues_avec_coordonnees.append(ue)
@@ -316,7 +323,10 @@ def assigner_coordonnees_antennes(fichier_de_cas, fichier_de_devices):
                 antenna = Antenna(id)
                 antenna.coords = coord
                 antenna.gen = type_de_generation
-                antenna.group = get_from_dict('name', get_from_dict(antenna_group,fichier_de_devices))
+                antenna.group = antenna_group #get_from_dict('name', get_from_dict(antenna_group,fichier_de_devices))
+                antenna.type = get_from_dict('type', get_from_dict(antenna_group,fichier_de_devices))
+                antenna.gain = get_from_dict('gain', get_from_dict(antenna_group,fichier_de_devices))                
+                antenna.name = get_from_dict('name', get_from_dict(antenna_group,fichier_de_devices))
                 liste_antennes_avec_coordonnees.append(antenna)
 
             # Mettre a jour le compteur pour ce type d'antenne
@@ -358,7 +368,9 @@ def lire_coordonnees_ues(filename, fichier_de_devices):
                 ue = UE(id=id_ue, app_name=appname_ue)
                 ue.coords = [coord_x_ue, coord_y_ue]
                 ue.group = group_ue
+                ue.name = get_from_dict('name', get_from_dict(group_ue,fichier_de_devices))
                 ue.height = get_from_dict('height', get_from_dict(group_ue,fichier_de_devices))
+                ue.type = get_from_dict('type', get_from_dict(group_ue,fichier_de_devices))
                 ue.TX_rate = get_from_dict('R', get_from_dict(group_ue,fichier_de_devices))
                 liste_ues_avec_coordonnees.append(ue)
 
@@ -393,8 +405,11 @@ def lire_coordonnees_antennes(filename, fichier_de_devices):
                 antenna = Antenna(id_ant)
                 antenna.coords = [coord_x_ant, coord_y_ant]
                 antenna.group = group_ant
+                antenna.name = get_from_dict('name', get_from_dict(antenna.group,fichier_de_devices))
                 antenna.frequency = get_from_dict('frequency', get_from_dict_3GPP(antenna.group, get_from_dict_3GPP(next(iter(fichier_de_devices)), fichier_de_devices)))
                 antenna.height = get_from_dict('height', get_from_dict_3GPP(antenna.group, get_from_dict_3GPP(next(iter(fichier_de_devices)), fichier_de_devices)))
+                antenna.type = get_from_dict('type', get_from_dict_3GPP(antenna.group, get_from_dict_3GPP(next(iter(fichier_de_devices)), fichier_de_devices)))
+                antenna.gain = get_from_dict('gain', get_from_dict_3GPP(antenna.group, get_from_dict_3GPP(next(iter(fichier_de_devices)), fichier_de_devices)))
                 liste_antennes_avec_coordonnees.append(antenna)
 
     return liste_antennes_avec_coordonnees
@@ -849,17 +864,20 @@ def association_ue_antenne(pathlosses, antennas, ues):
         ue_id = pathloss_object.id_ue
         ant_id = pathloss_object.id_ant
         pathloss_value = pathloss_object.value
+        pathloss_los = pathloss_object.los
 
         # Si l'UE n'est pas dans le dictionnaire ou que la valeur du pathloss est plus petite que le minimum courant,
         # Mettre a jour l'entree du dictionnaire
         if ue_id not in ue_to_antenna or pathloss_value < ue_to_antenna[ue_id][1]:
-            ue_to_antenna[ue_id] = (ant_id, pathloss_value)
+            ue_to_antenna[ue_id] = (ant_id, pathloss_value, pathloss_los)
 
     # Mettre a jour l'attribut assoc_ant de l'UE correspondante
-    for ue_id, (ant_id, _) in ue_to_antenna.items():
+    for ue_id, (ant_id, _, pathloss_los) in ue_to_antenna.items():
         ue = next((ue for ue in ues if ue.id == ue_id), None)
         if ue:
             ue.assoc_ant = ant_id
+            ue.los = pathloss_los
+        
 
     # Mettre a jour l'attribut assoc_ue de l'antenne correspondante
     for ant in antennas:
@@ -958,8 +976,50 @@ def lire_fichier_segments(filename, ues):
                     break  # Sortir de la boucle une fois que l'UE correspondante est trouvée
     return ues
 
+# Fonction permettant de verifier l'integritee du fichie de segment decrivant le profil de tranmission des UEs
+# Arguments : fichier_de_cas
+# Valeur de retour : None
+def sanity_check_transmission_profile(fichier_de_cas):
+    file_path = get_from_dict('read', get_from_dict('CLOCK', fichier_de_cas))
+    if not isinstance(file_path, str):
+        ERROR("Le chemin du fichier n'est pas une chaîne de caractères.")
+    if not os.path.exists(file_path):
+        ERROR("Le fichier spécifié n'existe pas.")
+    if not os.access(file_path, os.R_OK):
+        ERROR("Le programme n'a pas les autorisations nécessaires pour lire le fichier.")
+    if os.path.getsize(file_path) == 0:
+        ERROR("Le fichier est vide.")
+    ue_transmissions = {}  # Initialisation de la variable ue_transmissions
+    with open(file_path, 'r') as file:
+        for line_num, line in enumerate(file, start=1):
+            # Vérifier le format de chaque ligne
+            line_data = line.strip().split('\t')
+            if len(line_data) != 3:
+                ERROR(f"Erreur à la ligne {line_num}: Format de ligne incorrect.")
+            try:
+                ue_id, start_time, end_time = map(float, line_data)
+            except ValueError:
+                ERROR(f"Erreur à la ligne {line_num}: Les valeurs ne sont pas numériques.")            
+            # Vérifier que le temps de début vient après le temps de fin
+            if start_time >= end_time:
+                ERROR(f"Erreur à la ligne {line_num}: Le temps de début de transmission doit venir après le temps de fin.")            
+            # Vérifier la validité des valeurs
+            if not (ue_id.is_integer() and ue_id >= 0):
+                ERROR(f"Erreur à la ligne {line_num}: L'ID de l'UE doit être un entier positif ou nul.")
+            if start_time < 0 or end_time < 0:
+                ERROR(f"Erreur à la ligne {line_num}: Les temps de début et de fin de transmission doivent être positifs.")
+            # Vérifier l'intégrité des données (UE ne transmet pas plus d'un paquet en même temps)
+            if ue_id in ue_transmissions:
+                if ue_transmissions[ue_id] >= start_time:
+                    ERROR(f"Erreur à la ligne {line_num}: L'UE {ue_id} transmet plus d'un paquet en même temps.")
+            ue_transmissions[ue_id] = end_time  # Mettre à jour le temps de fin de transmission de l'UE
+    return
+
+
+
 # Fonction permettant de faire la simulation de la transmission a chaque dt et retournant une liste d'objets Antenna et une liste d'objets UE avec les attributs nbits et live_ues mis a jour
 # Arguments : fichier_de_cas, fichier_de_device, antennas (liste d'objets Antenna), ues (liste d'objets UE)
+# Valeur de retour : antennas = liste d'objets Antenna, ues = liste d'objets UE
 def simulate_packet_transmission(fichier_de_cas, fichier_de_device, antennas, ues) :
     temps_initial = get_from_dict('tstart',fichier_de_cas) # temps de debut de simulation
     temps_final = get_from_dict('tfinal',fichier_de_cas) # temps de fin de simulation
@@ -967,6 +1027,7 @@ def simulate_packet_transmission(fichier_de_cas, fichier_de_device, antennas, ue
     segment_filename = get_from_dict('read', get_from_dict('CLOCK', fichier_de_cas)) # Nom du fichier de segment
 
     # Lire le fichier de segments et en extraire les informations de transmission des UEs
+    sanity_check_transmission_profile(fichier_de_cas)
     ues = lire_fichier_segments(segment_filename, ues)
 
     # Lire l
@@ -983,7 +1044,7 @@ def simulate_packet_transmission(fichier_de_cas, fichier_de_device, antennas, ue
             for i in range(len(ue.start_TX)):
                 if temps_courant <= ue.start_TX[i] <= temps_courant + pas_temps or ue.start_TX[i]<= temps_courant <= ue.end_TX[i]:
                     M = min(temps_courant + pas_temps, ue.end_TX[i]) - max(temps_courant, ue.start_TX[i])  # Durée de la transmission
-                    R = ue.TX_rate  # Débit de la transmission
+                    R = ue.TX_rate*1000  # Débit de la transmission en bits per second
                     nbits_transmis = int(R * M)  # Nombre de bits transmis
                     # Mettre a jour l'attribut nbits de l'UE 
                     # if len(ue.nbits) >= (temps_courant + pas_temps) :
@@ -1135,8 +1196,8 @@ def plot_equipment_positions(antennas, ues):
     plt.plot([], [], 'bo', label='UEs')  # Entrée personnalisée pour les UE dans la légende
     
     # Définir les labels et le titre du plot
-    plt.xlabel('Longueur (km)')
-    plt.ylabel('Largeur (km)')
+    plt.xlabel('Longueur (m)')
+    plt.ylabel('Largeur (m)')
     plt.title('Disposition des équipements')
     
     # Afficher la légende
@@ -1341,6 +1402,7 @@ def main(arg):
 
     # Transmission des paquets
     antennas, ues = simulate_packet_transmission(fichier_de_cas, fichier_de_device, antennas, ues)
+
     # Ecriture des fichiers de sortie et du plot des equipements
     write_coordinates_to_file(antennas,ues, fichier_de_cas)
     write_pathloss_to_file(pathlosses, fichier_de_cas)
