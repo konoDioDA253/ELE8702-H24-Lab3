@@ -10,6 +10,7 @@ import random
 import os
 import argparse
 import matplotlib.pyplot as plt
+import numpy as np
 from pathloss_3gpp_eq7 import *
 
 # Variables GLOBAL
@@ -523,8 +524,9 @@ def write_transmission_ue_to_file(ues, fichier_de_cas):
             file.write(line)
             for slot in  range(int((temps_final-temps_initial)/pas_temps)): 
                 line = f"{float(slot)}"
-                if ue.nbits[slot] != 0 :
-                    line += f"\t{ue.nbits[slot]}"
+                if ue.nbits != [] :
+                    if ue.nbits[slot] != 0 :
+                        line += f"\t{ue.nbits[slot]}"
                 line += "\n"
                 file.write(line)
     print(f"INFO : Wrote file '{filename}' in the current directory.")
@@ -1034,7 +1036,7 @@ def simulate_packet_transmission(fichier_de_cas, fichier_de_device, antennas, ue
 
     # Boucle de simulation
     temps_courant = temps_initial
-    while temps_courant < temps_final:
+    while temps_courant < temps_final-(temps_final-pas_temps*int((temps_final - temps_initial) / pas_temps)): # tant que le temps courant est inferieur au temps de fin de simulation
         # Logique de simulation de transmission de paquets entre antennes et UEs
         # Pour chaque UE
         for ue in ues:
@@ -1056,7 +1058,9 @@ def simulate_packet_transmission(fichier_de_cas, fichier_de_device, antennas, ue
                         # Mettre à jour l'attribut nbits de l'antenne si celui-ci est vide
                         while len(ue.nbits) < int((temps_final - temps_initial) / pas_temps) :
                             ue.nbits.append(0)
-                    ue.nbits[int(temps_courant / pas_temps)] += nbits_transmis 
+                    if temps_courant / pas_temps > 1.0 :
+                        print("EHHH")
+                    ue.nbits[int(round(temps_courant / pas_temps))] += nbits_transmis 
                     
                     # Mettre à jour les donnees de l'antenne associee
                     antenne_associee_id = ue.assoc_ant
@@ -1075,14 +1079,14 @@ def simulate_packet_transmission(fichier_de_cas, fichier_de_device, antennas, ue
                                 # Mettre à jour l'attribut nbits de l'antenne si celui-ci est vide
                                 while len(antenne.nbits) < int((temps_final - temps_initial) / pas_temps) :
                                     antenne.nbits.append(0)
-                            antenne.nbits[int(temps_courant / pas_temps)] += nbits_transmis 
+                            antenne.nbits[int(round(temps_courant / pas_temps))] += nbits_transmis 
                             
                             # Ajouter l'UE à la liste des UEs actives de l'antenne si pas deja ajoute 
                             if antenne.live_ues == [] :
                                 while len(antenne.live_ues) < int((temps_final - temps_initial) / pas_temps) :
                                     antenne.live_ues.append([])
                             if ue.id not in antenne.live_ues[int(temps_courant / pas_temps)]:
-                                antenne.live_ues[int(temps_courant / pas_temps)].append(ue.id)                            
+                                antenne.live_ues[int(round(temps_courant / pas_temps))].append(ue.id)                            
                             break
 
         
@@ -1249,7 +1253,7 @@ def plot_TX_all(filename, ues, antennas, fichier_de_cas):
 
 def plot_average_traffic_ues(filename, ues):
     # Calculer la moyenne du trafic pour chaque UE
-    average_traffic_ues = [sum(ue.nbits) / len(ue.nbits) for ue in ues]
+    average_traffic_ues = [sum(ue.nbits) / len(ue.nbits) if ue.nbits else 0  for ue in ues]
 
     # Extraire les ID des UEs
     ue_ids = [ue.id for ue in ues]
@@ -1271,7 +1275,7 @@ def plot_average_traffic_ues(filename, ues):
     plt.savefig(png_filename)
     plt.close()
 
-    print(f"Le trafic moyen de chaque UE a été tracé dans {pdf_filename} et {png_filename}.")
+    print(f"The average traffic of each UE has been plotted in '{pdf_filename}' and '{png_filename}'.")
 
 def plot_average_traffic_antennas(filename, antennas):
     # Calculer la moyenne du trafic pour chaque antenne
@@ -1297,7 +1301,58 @@ def plot_average_traffic_antennas(filename, antennas):
     plt.savefig(png_filename)
     plt.close()
 
-    print(f"Le trafic moyen de chaque antenne a été tracé dans {pdf_filename} et {png_filename}.")
+    print(f"The average traffic of each UE has been plotted in '{pdf_filename}' and '{png_filename}'.")
+
+def plot_bits_received_per_slot(antennas, ues, fichier_de_cas, filename_prefix):
+    num_slots = len(ues[0].nbits)  # Nombre de créneaux basé sur la longueur de la liste de bits reçus d'un UE
+    slot_interval = get_from_dict('dt',fichier_de_cas) # pas de temps dt
+
+    # Création des créneaux en millisecondes
+    slots = np.arange(0, num_slots * slot_interval, slot_interval)
+
+    slot_sum_bits_received = np.zeros(num_slots)  # Tableau pour stocker la somme des bits reçus pour chaque créneau
+
+    # Parcours de chaque antenne
+    for antenna in antennas:
+        live_ues = antenna.live_ues
+        # Initialisation d'un tableau temporaire pour stocker les bits reçus pour chaque créneau
+        temp_slot_sum_bits_received = np.zeros(num_slots)
+        # Sommation des bits reçus pour chaque créneau pour toutes les UE associées à l'antenne
+        for ue_ids_in_slot in live_ues:
+            for ue_id in ue_ids_in_slot:
+                # Recherche de l'UE dans la liste d'UE
+                ue = next((ue for ue in ues if ue.id == ue_id), None)
+                if ue:
+                    # Sommation des bits reçus pour chaque créneau
+                    temp_slot_sum_bits_received += np.array(ue.nbits)
+        # Ajout des bits reçus pour chaque créneau à la somme totale
+        slot_sum_bits_received += temp_slot_sum_bits_received
+
+    # Création du graphique
+    plt.bar(slots, slot_sum_bits_received, width=slot_interval, align='edge')
+    plt.xlabel('Temps (ms)')
+    plt.ylabel('Nombre de bits reçus')
+    plt.title('Bits reçus par slot de temps')
+    plt.grid(True)
+
+    # Ajouter la durée d'un slot et le numéro de chaque slot au-dessus du graphique
+    for slot, slot_value in enumerate(slots):
+        plt.text(slot_value + slot_interval/2, slot_sum_bits_received[slot], f'{slot + 1}\n',
+                 horizontalalignment='center', verticalalignment='bottom')
+
+    # Ajouter la durée d'un slot comme légende
+    plt.legend([f'{num_slots} Slots\nDurée d\'un slot: {slot_interval} ms'])
+
+    # Sauvegarde en PNG
+    png_filename = f"{filename_prefix}.png"
+    plt.savefig(png_filename, format='png')
+
+    # Sauvegarde en PDF
+    pdf_filename = f"{filename_prefix}.pdf"
+    plt.savefig(pdf_filename, format='pdf')
+
+    print(f"The total number of bits received per time slot has been plotted in '{pdf_filename}' and '{png_filename}'.")
+
 
 
 # Fonction permettant de traiter les arguments en entree de la commande CLI python pour lancer le code source
@@ -1416,6 +1471,7 @@ def main(arg):
     write_pathloss_warning_log_file(warning_log, "pathloss_warning_log.txt", fichier_de_cas)
     plot_average_traffic_ues("average_traffic_ues", ues)
     plot_average_traffic_antennas("average_traffic_antennas", antennas)
+    plot_bits_received_per_slot(antennas, ues, fichier_de_cas, "average_traffic_per_slot")
 
 
 

@@ -2,3 +2,5 @@
 Lab 3 of ELE8702 class 
 
 ![Traffic moyen des UEs](average_traffic_ues.png)
+
+![Bits recus par slot](average_traffic_per_slot.png)
