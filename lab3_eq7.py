@@ -1347,7 +1347,7 @@ def treat_cli_args(arg):
     # Vérifier le nombre d'arguments
     # case_file_name = "lab2_eq7_cas.yaml" # UNCOMMENT TO ALLOW DEBUGGING IN VSCODE
     if len(arg) != 1:
-        ERROR("Nombre d'arguments incorrect. Veuillez spécifier 1 nom de fichier de cas dans le format YAML, par exemple 'lab2_eq7_cas.yaml' .")
+        ERROR("Nombre d'arguments incorrect. Veuillez spécifier 1 nom de fichier de cas dans le format YAML, par exemple 'lab3_eq7_cas.yaml' .")
     case_file_name = arg[0] # UNCOMMENT FOR CLI FINAL RELEASE, COMMENT OTHERWISE
     # Check if the file exists
     YAML_file_exists = True
