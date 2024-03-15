@@ -1301,7 +1301,7 @@ def plot_bits_received_per_slot(antennas, ues, fichier_de_cas, filename_prefix):
     temps_initial = get_from_dict('tstart',fichier_de_cas)
 
     # Création des créneaux en millisecondes
-    slots = np.arange(temps_initial, round(num_slots * slot_interval, 2)  + temps_initial, slot_interval)
+    slots = np.arange(temps_initial, round(num_slots * slot_interval, 4)  + temps_initial, slot_interval)
     slot_sum_bits_received = np.zeros(num_slots)  # Tableau pour stocker la somme des bits reçus pour chaque créneau
 
     # Parcours de chaque antenne
