@@ -1018,6 +1018,9 @@ def sanity_check_transmission_profile(fichier_de_cas):
             ue_transmissions[ue_id] = end_time  # Mettre à jour le temps de fin de transmission de l'UE
     return
 
+# Fonction permettant de verifier l'integritee des valeurs de temps de debut, fin et pas de la simulation
+# Arguments : temps_initial, temps_final, pas_temps
+# Valeur de retour : None
 def sanity_check_timing_values(temps_initial, temps_final, pas_temps):
     # Vérification des bornes temporelles
     if temps_initial < 0 or temps_final < 0:
