@@ -1018,16 +1018,30 @@ def sanity_check_transmission_profile(fichier_de_cas):
             ue_transmissions[ue_id] = end_time  # Mettre à jour le temps de fin de transmission de l'UE
     return
 
+def sanity_check_timing_values(temps_initial, temps_final, pas_temps):
+    # Vérification des bornes temporelles
+    if temps_initial < 0 or temps_final < 0:
+        ERROR("tstart and tfinal MUST be positive values.")
+    if temps_initial >= temps_final:
+        ERROR("tstart MUST be smaller than tfinal.")
+
+    # Vérification de la granularité temporelle
+    if pas_temps <= 0:
+        ERROR("dt MUST be a positive value.")
+
+
 
 
 # Fonction permettant de faire la simulation de la transmission a chaque dt et retournant une liste d'objets Antenna et une liste d'objets UE avec les attributs nbits et live_ues mis a jour
 # Arguments : fichier_de_cas, fichier_de_device, antennas (liste d'objets Antenna), ues (liste d'objets UE)
 # Valeur de retour : antennas = liste d'objets Antenna, ues = liste d'objets UE
 def simulate_packet_transmission(fichier_de_cas, fichier_de_device, antennas, ues) :
+
     temps_initial = get_from_dict('tstart',fichier_de_cas) # temps de debut de simulation
     temps_final = get_from_dict('tfinal',fichier_de_cas) # temps de fin de simulation
     pas_temps = get_from_dict('dt',fichier_de_cas) # pas de temps dt
     segment_filename = get_from_dict('read', get_from_dict('CLOCK', fichier_de_cas)) # Nom du fichier de segment
+    sanity_check_timing_values(temps_initial, temps_final, pas_temps)
 
     # Lire le fichier de segments et en extraire les informations de transmission des UEs
     sanity_check_transmission_profile(fichier_de_cas)
@@ -1284,8 +1298,7 @@ def plot_bits_received_per_slot(antennas, ues, fichier_de_cas, filename_prefix):
     temps_initial = get_from_dict('tstart',fichier_de_cas)
 
     # Création des créneaux en millisecondes
-    slots = np.arange(temps_initial, num_slots * slot_interval + temps_initial, slot_interval)
-
+    slots = np.arange(temps_initial, round(num_slots * slot_interval, 2)  + temps_initial, slot_interval)
     slot_sum_bits_received = np.zeros(num_slots)  # Tableau pour stocker la somme des bits reçus pour chaque créneau
 
     # Parcours de chaque antenne

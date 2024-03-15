@@ -31,6 +31,6 @@ ETUDE_DE_TRANSMISSION:
    CLOCK : 
       tstart : 0.0
       tfinal : 10.0 #ms 
-      dt : 1.0      #ms 
+      dt : 0.8      #ms 
       read : lab3_eq7_segments.txt
       #write: time_segments_lab3.txt
