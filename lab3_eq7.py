@@ -1362,6 +1362,7 @@ def plot_bits_received_per_slot(antennas, ues, fichier_de_cas, filename_prefix):
     # Sauvegarde en PDF
     pdf_filename = f"{filename_prefix}.pdf"
     plt.savefig(pdf_filename, format='pdf')
+    plt.close()
 
 
 
