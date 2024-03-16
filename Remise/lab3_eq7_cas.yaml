@@ -1,0 +1,36 @@
+###############################################
+#                                             #
+#         Cas lab 3:                          #
+#            File: lab3_eq7_cas.yaml         #
+#            Description: Etude Transmisssion #
+#                                             #
+###############################################
+ETUDE_DE_TRANSMISSION:
+   PATHLOSS :
+      model : 3gpp
+      scenario : UMa
+   ANT_COORD_GEN : g
+   UE_COORD_GEN: a
+   COORD_FILES:  # Used when coordinates are read from a file 
+      read: lab3_eq7_coords.txt
+      #write: coord_case1-ref-1.txt
+   DEVICES:
+      Antenna1 : # Group Antenna1 (As defined in the database)
+         number : 7
+      UE1-App1 : # Group UE1-App1 (As defined in the database)
+         number : 30
+      UE2-App2 : # Group UE2-App2 (As defined in the database)
+         number: 20
+   GEOMETRY:
+      Surface:
+         rectangle:
+           length : 5000
+           height : 4000
+   VISIBILITY: # read nlos information
+      read: lab3_eq7_visibility.txt
+   CLOCK : 
+      tstart : 0.0
+      tfinal : 10.0 #ms 
+      dt : 1.0      #ms 
+      read : lab3_eq7_segments.txt
+      #write: time_segments_lab3.txt
