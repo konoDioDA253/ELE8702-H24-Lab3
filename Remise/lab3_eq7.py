@@ -1236,6 +1236,8 @@ def plot_equipment_positions(antennas, ues, plot_filename):
     # Sauvegarder le graphique dans un fichier PNG
     png_filename = f"{filename}.png"
     plt.savefig(png_filename)
+    # # Sauvegarde en PNG
+    # plt.savefig("disp_plot_disposition_equipements.png", format='png')
     plt.close()
 
 
@@ -1269,6 +1271,9 @@ def plot_average_traffic_ues(filename, ues):
     # Sauvegarder le graphique dans un fichier PNG
     png_filename = f"{filename}.png"
     plt.savefig(png_filename)
+    # # Sauvegarde en PNG
+    # plt.savefig("disp_average_traffic_ues.png", format='png')
+
     plt.close()
 
 
@@ -1297,6 +1302,9 @@ def plot_average_traffic_antennas(filename, antennas):
     # Sauvegarder le graphique dans un fichier PNG
     png_filename = f"{filename}.png"
     plt.savefig(png_filename)
+    # # Sauvegarde en PNG
+    # plt.savefig("disp_average_traffic_antennas.png", format='png')
+
     plt.close()
 
 
@@ -1348,6 +1356,9 @@ def plot_bits_received_per_slot(antennas, ues, fichier_de_cas, filename_prefix):
     png_filename = f"{filename_prefix}.png"
     plt.savefig(png_filename, format='png')
 
+    # # Sauvegarde en PNG
+    # plt.savefig("disp_average_traffic_per_slot.png", format='png')
+
     # Sauvegarde en PDF
     pdf_filename = f"{filename_prefix}.pdf"
     plt.savefig(pdf_filename, format='pdf')
@@ -1363,10 +1374,26 @@ def check_pdftk_installed():
         print("INFO: pdftk is not installed.")
 
 
-# Fonction pour combiner les png en un pdf
-# Arguments : les noms de fichier pdf en input et le nom du fichier pdf en output
+# Fonction pour combiner les plot en un pdf
+# Arguments : (input_filenames = lsite des nom des fichiers a combiner en un pdf, output_pdf = nom du fichier pdf en output, antennas = liste d'objets Antenna, ues = liste d'objets UE, fichier_de_cas)
 # Valeur de retour : None 
-def create_pdf_from_plot(pdf_files, output_pdf):
+def create_pdf_from_plot(input_filenames, output_pdf, antennas, ues, fichier_de_cas):
+
+
+    pdf_files = []
+    for filename in input_filenames :
+        pdf_files.append(f"{filename}.pdf")
+
+        if filename == "plot_disposition_equipement" :
+            plot_equipment_positions(antennas, ues, "plot_disposition_equipement")
+        if filename == "average_traffic_per_slot" :
+            plot_bits_received_per_slot(antennas, ues, fichier_de_cas, "average_traffic_per_slot")
+        if filename == "average_traffic_ues" :
+            plot_average_traffic_ues("average_traffic_ues", ues)
+        if filename == "average_traffic_antennas" :
+            plot_average_traffic_antennas("average_traffic_antennas", antennas)
+
+
 
     # Is pdftk installed?
     try:
@@ -1511,11 +1538,12 @@ def main(arg):
     write_assoc_ant_to_file(ues)
     write_transmission_ant_to_file(antennas, fichier_de_cas)
     write_transmission_ue_to_file(ues, fichier_de_cas)
-    plot_equipment_positions(antennas, ues, "plot_disposition_equipement")
-    plot_average_traffic_ues("average_traffic_ues", ues)
-    plot_average_traffic_antennas("average_traffic_antennas", antennas)
-    plot_bits_received_per_slot(antennas, ues, fichier_de_cas, "average_traffic_per_slot")
-    create_pdf_from_plot(["plot_disposition_equipement.pdf", "average_traffic_per_slot.pdf", "average_traffic_antennas.pdf", "average_traffic_ues.pdf"], pdf_graph_file_name)
+    # plot_equipment_positions(antennas, ues, "plot_disposition_equipement")
+    # plot_average_traffic_ues("average_traffic_ues", ues)
+    # plot_average_traffic_antennas("average_traffic_antennas", antennas)
+    # plot_bits_received_per_slot(antennas, ues, fichier_de_cas, "average_traffic_per_slot")
+    input_filenames_to_write_as_pdf = ["plot_disposition_equipement", "average_traffic_per_slot", "average_traffic_antennas", "average_traffic_ues"]
+    create_pdf_from_plot(input_filenames_to_write_as_pdf, pdf_graph_file_name, antennas, ues, fichier_de_cas)
 
 if __name__ == '__main__':
     # sys.argv est une liste qui contient les arguments utilisés lors de l'appel 
