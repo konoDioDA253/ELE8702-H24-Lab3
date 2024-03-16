@@ -9,9 +9,9 @@ Lab 3 of ELE8702 class
 
 ## Plots :
 
-![Bits recus par slot](disp_average_traffic_per_slot.png)
-
 ![Disposition des equipements](disp_plot_disposition_equipements.png)
+
+![Bits recus par slot](disp_average_traffic_per_slot.png)
 
 ![Traffic moyen des UEs](disp_average_traffic_ues.png)
 
