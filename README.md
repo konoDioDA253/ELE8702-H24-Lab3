@@ -1,6 +1,22 @@
 # ELE8702-H24-Lab3
+
 Lab 3 of ELE8702 class 
 
-![Traffic moyen des UEs](average_traffic_ues.png)
+## Dependencies
 
-![Bits recus par slot](average_traffic_per_slot.png)
+- **Package:** pdftk
+
+
+## Plots :
+
+![Disposition des equipements](disp_plot_disposition_equipements.png)
+
+![Traffic moyen des UEs](disp_average_traffic_ues.png)
+
+![Traffic moyen des Antennas](disp_average_traffic_antennas.png)
+
+![Bits recus par slot](disp_average_traffic_per_slot.png)
+
+## PDF of combined plots :
+
+- [Lab 3 Graphiques](lab3_eq7_graphiques.pdf)
