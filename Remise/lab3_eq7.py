@@ -500,8 +500,11 @@ def write_transmission_ant_to_file(antennas, fichier_de_cas):
             line = f"{antenna.id}"
             line += "\n"
             file.write(line)
+            # Création des créneaux en millisecondes
+            num_slots = int((temps_final-temps_initial)/pas_temps)
+            creneaux = np.arange(temps_initial, 0.9999999*round(num_slots * pas_temps, 4)  + temps_initial, pas_temps)
             for slot in  range(int((temps_final-temps_initial)/pas_temps)): 
-                line = f"{float(slot)}\t"
+                line = f"{round((creneaux[slot]), 1)}\t"
                 line += ":\t"
                 if antenna.nbits != [] :
                     if antenna.nbits[slot] != 0 :
@@ -525,8 +528,11 @@ def write_transmission_ue_to_file(ues, fichier_de_cas):
             line = f"{ue.id}"
             line += "\n"
             file.write(line)
+            # Création des créneaux en millisecondes
+            num_slots = int((temps_final-temps_initial)/pas_temps)
+            creneaux = np.arange(temps_initial, 0.9999999*round(num_slots * pas_temps, 4)  + temps_initial, pas_temps)
             for slot in  range(int((temps_final-temps_initial)/pas_temps)): 
-                line = f"{float(slot)}"
+                line = f"{round((creneaux[slot]), 1)}"
                 if ue.nbits != [] :
                     if ue.nbits[slot] != 0 :
                         line += f"\t{ue.nbits[slot]}"
@@ -1313,12 +1319,13 @@ def plot_average_traffic_antennas(filename, antennas):
 # Arguments : antennas= list of objects Antenna, ues= liste of objects UE, fichier_de_cas, filename_prefix
 # Valeur de retour : None
 def plot_bits_received_per_slot(antennas, ues, fichier_de_cas, filename_prefix):
-    num_slots = len(ues[0].nbits)  # Nombre de créneaux basé sur la longueur de la liste de bits reçus d'un UE
     slot_interval = get_from_dict('dt',fichier_de_cas) # pas de temps dt
     temps_initial = get_from_dict('tstart',fichier_de_cas)
+    temps_final = get_from_dict('tfinal',fichier_de_cas)
+    num_slots = int((temps_final-temps_initial)/slot_interval)  # Nombre de créneaux basé sur la longueur de la liste de bits reçus d'un UE
 
     # Création des créneaux en millisecondes
-    slots = np.arange(temps_initial, round(num_slots * slot_interval, 4)  + temps_initial, slot_interval)
+    slots = np.arange(temps_initial, 0.9999999*round(num_slots * slot_interval, 4)  + temps_initial, slot_interval)
     slot_sum_bits_received = np.zeros(num_slots)  # Tableau pour stocker la somme des bits reçus pour chaque créneau
 
     # Parcours de chaque antenne
@@ -1362,6 +1369,7 @@ def plot_bits_received_per_slot(antennas, ues, fichier_de_cas, filename_prefix):
     # Sauvegarde en PDF
     pdf_filename = f"{filename_prefix}.pdf"
     plt.savefig(pdf_filename, format='pdf')
+    plt.close()
 
 
 
@@ -1407,7 +1415,12 @@ def create_pdf_from_plot(input_filenames, output_pdf, antennas, ues, fichier_de_
         # Run pdftk command and redirect output
         subprocess.run(["pdftk", "--version"], check=True, stdout=stdout, stderr=stderr)
     except FileNotFoundError:
-        ERROR("Package 'pdftk' is not installed. Please install it using your distribution's package manager ('sudo apt install pdftk' for Ubuntu/Debian, 'sudo pacman -S pdftk' for Arch Linux)")
+        ERROR("""Package 'pdftk' is not installed.
+              
+Linux : Please install it using your distribution's package manager ('sudo apt install pdftk' for Ubuntu/Debian, 'sudo pacman -S pdftk' for Arch Linux).
+              
+WINDOWS : Please install it by going to this website and downloading the .exe (don't forget to select the 'Add application directory to your environmental path' option during installation) :
+https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/""")
 
     # Commande pdftk pour fusionner les fichiers PDF
     pdftk_cmd = ["pdftk"] + pdf_files + ["cat", "output", output_pdf]
