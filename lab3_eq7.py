@@ -1408,7 +1408,12 @@ def create_pdf_from_plot(input_filenames, output_pdf, antennas, ues, fichier_de_
         # Run pdftk command and redirect output
         subprocess.run(["pdftk", "--version"], check=True, stdout=stdout, stderr=stderr)
     except FileNotFoundError:
-        ERROR("Package 'pdftk' is not installed. Please install it using your distribution's package manager ('sudo apt install pdftk' for Ubuntu/Debian, 'sudo pacman -S pdftk' for Arch Linux)")
+        ERROR("""Package 'pdftk' is not installed.
+              
+Linux : Please install it using your distribution's package manager ('sudo apt install pdftk' for Ubuntu/Debian, 'sudo pacman -S pdftk' for Arch Linux).
+              
+WINDOWS : Please install it by going to this website and downloading the .exe (don't forget to select the 'Add application directory to your environmental path' option during installation) :
+https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/""")
 
     # Commande pdftk pour fusionner les fichiers PDF
     pdftk_cmd = ["pdftk"] + pdf_files + ["cat", "output", output_pdf]
