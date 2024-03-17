@@ -30,7 +30,7 @@ ETUDE_DE_TRANSMISSION:
       read: lab3_eq7_visibility.txt
    CLOCK : 
       tstart : 5.0
-      tfinal : 10.0 #ms 
-      dt : 0.7      #ms 
+      tfinal : 6.0 #ms 
+      dt : 0.42      #ms 
       read : lab3_eq7_segments.txt
       #write: time_segments_lab3.txt

@@ -1319,9 +1319,10 @@ def plot_average_traffic_antennas(filename, antennas):
 # Arguments : antennas= list of objects Antenna, ues= liste of objects UE, fichier_de_cas, filename_prefix
 # Valeur de retour : None
 def plot_bits_received_per_slot(antennas, ues, fichier_de_cas, filename_prefix):
-    num_slots = len(ues[0].nbits)  # Nombre de créneaux basé sur la longueur de la liste de bits reçus d'un UE
     slot_interval = get_from_dict('dt',fichier_de_cas) # pas de temps dt
     temps_initial = get_from_dict('tstart',fichier_de_cas)
+    temps_final = get_from_dict('tfinal',fichier_de_cas)
+    num_slots = int((temps_final-temps_initial)/slot_interval)  # Nombre de créneaux basé sur la longueur de la liste de bits reçus d'un UE
 
     # Création des créneaux en millisecondes
     slots = np.arange(temps_initial, 0.9999999*round(num_slots * slot_interval, 4)  + temps_initial, slot_interval)
