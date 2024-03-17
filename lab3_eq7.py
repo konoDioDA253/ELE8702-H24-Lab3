@@ -500,8 +500,11 @@ def write_transmission_ant_to_file(antennas, fichier_de_cas):
             line = f"{antenna.id}"
             line += "\n"
             file.write(line)
+            # Création des créneaux en millisecondes
+            num_slots = int((temps_final-temps_initial)/pas_temps)
+            creneaux = np.arange(temps_initial, 0.9999999*round(num_slots * pas_temps, 4)  + temps_initial, pas_temps)
             for slot in  range(int((temps_final-temps_initial)/pas_temps)): 
-                line = f"{float(slot)}\t"
+                line = f"{round((creneaux[slot]), 1)}\t"
                 line += ":\t"
                 if antenna.nbits != [] :
                     if antenna.nbits[slot] != 0 :
@@ -525,8 +528,11 @@ def write_transmission_ue_to_file(ues, fichier_de_cas):
             line = f"{ue.id}"
             line += "\n"
             file.write(line)
+            # Création des créneaux en millisecondes
+            num_slots = int((temps_final-temps_initial)/pas_temps)
+            creneaux = np.arange(temps_initial, 0.9999999*round(num_slots * pas_temps, 4)  + temps_initial, pas_temps)
             for slot in  range(int((temps_final-temps_initial)/pas_temps)): 
-                line = f"{float(slot)}"
+                line = f"{round((creneaux[slot]), 1)}"
                 if ue.nbits != [] :
                     if ue.nbits[slot] != 0 :
                         line += f"\t{ue.nbits[slot]}"
@@ -1318,7 +1324,7 @@ def plot_bits_received_per_slot(antennas, ues, fichier_de_cas, filename_prefix):
     temps_initial = get_from_dict('tstart',fichier_de_cas)
 
     # Création des créneaux en millisecondes
-    slots = np.arange(temps_initial, round(num_slots * slot_interval, 4)  + temps_initial, slot_interval)
+    slots = np.arange(temps_initial, 0.9999999*round(num_slots * slot_interval, 4)  + temps_initial, slot_interval)
     slot_sum_bits_received = np.zeros(num_slots)  # Tableau pour stocker la somme des bits reçus pour chaque créneau
 
     # Parcours de chaque antenne
